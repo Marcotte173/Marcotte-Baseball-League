@@ -1,0 +1,13 @@
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.exe
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.deps.json
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.runtimeconfig.json
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.runtimeconfig.dev.json
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.dll
+C:\Users\Marcotte\source\repos\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.pdb
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.csprojAssemblyReference.cache
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.AssemblyInfoInputs.cache
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.AssemblyInfo.cs
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.csproj.CoreCompileInputs.cache
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.dll
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.pdb
+C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.genruntimeconfig.cache
