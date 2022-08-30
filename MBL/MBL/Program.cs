@@ -7,6 +7,7 @@ namespace MBL
         
         static void Main(string[] args)
         {
+            Console.SetWindowSize(, 40);
             Console.CursorVisible = false;
             Color.SetupConsole();
             string[] firstNames = System.IO.File.ReadAllLines(Environment.CurrentDirectory + "/FirstNames.txt");

@@ -2,15 +2,29 @@
 using System.Collections.Generic;
 using System.Text;
 
-public enum PitchLocation {Meatball,Inside, Outside,High, Low };
+public enum PitchLocationX {Inside, Outside,Center };
+public enum PitchLocationY { High,Low,Center};
 public enum PitchCall {Ball,Strike }
 public enum HitType {Grounder,LineDrive,Looper,Pop }
 public enum HitDirection {Left,Right,Center }
 
 public class Engine
 {
+    public static List<string> lowPitchPhrases = new List<string> {"towards the bottom of the strikezone","at the bottom of the strikezone" };
+    public static List<string> tooLowPitchPhrases = new List<string> {"low","below the strike zone" };
+    public static List<string> tooLowPitchPhrasesX = new List<string> {"in the dirt" };
+    public static List<string> highPitchPhrases = new List<string> {"towards the top of the strikezone" };
+    public static List<string> tooHighPitchPhrases = new List<string> {"high" };
+    public static List<string> outsidePitchPhrases = new List<string> { };
+    public static List<string> tooOutsidePitchPhrases = new List<string> { };
+    public static List<string> insidePitchPhrases = new List<string> { };
+    public static List<string> tooInsidePitchPhrases = new List<string> { };
+    public static List<string> meatballPitchPhrases = new List<string> { };
+    public static bool meatball;
+    public static bool completedAtBat;
+    static int success;
     public static int pitch;
-    public static int week;
+    public static int week;                                                                                                                                                                                                                                                                                             
     public static Team a = new Team("Brooklyn Brokers");
     public static Team b = new Team("Edmonton Sandwiches");
     public static Team home = new Team("");
@@ -21,7 +35,8 @@ public class Engine
     public static int balls;
     public static int strikes;
     public static bool display;
-    public static PitchLocation pitchLocation;
+    public static PitchLocationX pitchLocationX;
+    public static PitchLocationY pitchLocationY;
     public static PitchCall pitchCall;
     public static int pitchSpeed;
     public static int pitchControl;
@@ -32,6 +47,7 @@ public class Engine
     public static HitDirection hitDirection;
     public static int hitPower;
     public static Player[] runnerOn = new Player[] {null,null,null,null };
+
     public static void Setup()
     {
         a.roster.Add(new Player(80, 90, 85, 2, Position.Catcher));
@@ -106,249 +122,337 @@ public class Engine
         outs = 0;
         while (outs < 3)
         {
+            int onNumber = 0;
+            bool[] on = new bool[4];
+            if (runnerOn[1] != null)
+            {
+                on[1] = true;
+                onNumber++;
+            }
+            if (runnerOn[2] != null)
+            {
+                on[2] = true;
+                onNumber++;
+            }
+            if (runnerOn[3] != null)
+            {
+                on[3] = true;
+                onNumber++;
+            }
+            completedAtBat = false;
             balls = 0;
             strikes = 0;
+            announcer.Clear();
+            Announce($"{Return.Batter().name} steps up to the plate");
+            if (!on[1] && !on[2] && !on[3])
+            {
+                Announce($"There is no one on and {outs} outs");
+            }
+            else
+            {
+                string a = (on[1]) ? "first" : (on[2] ? "second" : "third");
+                string b = (on[2] ? "second" : "third");
+                string c = "third";
+                string d = (onNumber == 1) ? "a runner on "+a : (onNumber == 2) ? "runners on "+a + " and " + b : "runners on "+a + ", " + b + " and " +c;
+                Announce($"There are {outs} outs and {d}");
+            }
+            Write.Display();
+            Console.ReadKey();
+            announcer.Clear();
+            pitch = 0;
             AtBat(Return.Batter(), Return.Pitch());
-            if (outs == 3) announcer.Add("And with three outs, the inning is over");
+            if (outs == 3) Announce("And with three outs, the inning is over");
             Write.Display();
             announcer.Clear();
             Console.ReadKey();
-            ChangeBatter();
-        }        
+            ChangeBatter();           
+        }
         top = false;
     }  
 
     private static void AtBat(Player batter, Pitcher pitcher)
     {
-        pitch++;
-        bool hit = false;
-        pitcher.pitchCount[week]++;
-        int locationRoll = Return.RandomInt(0, 13);
-        pitchLocation = (locationRoll == 1 || locationRoll == 2 || locationRoll == 3) ? PitchLocation.High : (locationRoll == 4 || locationRoll == 5 || locationRoll == 6) ? PitchLocation.Low : (locationRoll == 7 || locationRoll == 8 || locationRoll == 9) ? PitchLocation.Inside : (locationRoll == 10 || locationRoll == 11 || locationRoll == 12) ? PitchLocation.Outside : PitchLocation.Meatball;
-        pitchSpeed = Return.RandomInt(pitcher.speed - 15, pitcher.speed);
+        if (!completedAtBat)
+        {
+            pitch++;
+            pitcher.pitchCount[week]++;
+            ThePitch(pitcher);
+            TheDecision(batter);
+            if (balls == 4)
+            {
+                Return.Batter().walkStat[Engine.week]++;
+                Advance.Walk();
+                Announce($"That's 4 balls. {Color.PLAYER + batter.name + Color.RESET} will take his base");
+                completedAtBat = true;
+            }
+            else if (strikes == 3)
+            {
+                Return.Batter().strikeOutStat[Engine.week]++;
+                outs++;
+                Announce($"That's 3 strikes. {Color.PLAYER + batter.name + Color.RESET} is out");
+                completedAtBat = true;
+
+            }
+            else AtBat(batter, pitcher);
+        }
+    }
+
+    private static void ThePitch(Pitcher pitcher)
+    {
+        int locationRollX = Return.RandomInt(1, 6);
+        int locationRollY = Return.RandomInt(1, 6);
+        pitchLocationX = (locationRollX == 1 || locationRollX == 2) ? PitchLocationX.Inside : (locationRollX == 3 || locationRollX == 4) ? PitchLocationX.Outside : PitchLocationX.Center;
+        pitchLocationY = (locationRollY== 1 || locationRollY == 2) ? PitchLocationY.High : (locationRollY == 3 || locationRollY == 4) ? PitchLocationY.Low : PitchLocationY.Center;
+        meatball = (pitchLocationX == PitchLocationX.Center && pitchLocationY == PitchLocationY.Center) ? true : false;
+        pitchSpeed = Return.RandomInt((pitcher.speed-20<=0)?0:pitcher.speed -20, pitcher.speed);
         pitchControl = Return.RandomInt(0, pitcher.control);
         pitchDeception = Return.RandomInt(0, pitcher.tricky);
         bool wild = (pitchControl < 5) ? true : false;
         if (wild)
         {
             balls++;
-            announcer.Add($"Pitch {pitch} - The pitch is wild!");
+            Announce($"Pitch {pitch} - The pitch is wild!");
             Advance.AllRunners();
             pitch++;
         }
         else
         {
-            if (pitchControl < 40 && pitchLocation == PitchLocation.Meatball) pitchSpeed /= 2;
-            else if (pitchControl < 40 && pitchLocation!= PitchLocation.Meatball) pitchCall = PitchCall.Ball;
+            if (pitchControl < 40 && meatball) pitchSpeed /= 2;
+            else if (pitchControl < 40 && !meatball) pitchCall = PitchCall.Ball;
             else pitchCall = PitchCall.Strike;
+            
         }
+    }
+
+
+    private static void TheDecision(Player batter)
+    {
         int eye = (Return.RandomInt(0, batter.patience));
-        int success = Return.RandomInt(0, batter.contact);
+        //Success based on contact and random number
+        int success = Return.RandomInt((batter.contact - 40 <= 0) ? 0 : batter.contact - 40, batter.contact);
+        //Success afected by deception vs eye
+        success -= (pitchDeception - eye)>0?pitchDeception-eye:0;
+        //Success affected by speed of the ball
+        if (pitchSpeed < 40) success += 40 - pitchSpeed;
+        if (pitchSpeed > 80) success -= pitchSpeed - 70;
+        string x = (pitchLocationX == PitchLocationX.Inside) ? "inside" : (pitchLocationX == PitchLocationX.Outside) ? "outside" : "";
+        string high = (pitchCall == PitchCall.Ball) ? tooHighPitchPhrases[Return.RandomInt(0, tooHighPitchPhrases.Count)] : highPitchPhrases[Return.RandomInt(0, highPitchPhrases.Count)];
+        string lowBall = (x != "") ? tooLowPitchPhrases[Return.RandomInt(0, tooLowPitchPhrases.Count)] : tooLowPitchPhrasesX[Return.RandomInt(0, tooLowPitchPhrasesX.Count)];
+        string low = (pitchCall == PitchCall.Ball) ? lowBall : lowPitchPhrases[Return.RandomInt(0,lowPitchPhrases.Count)];
+        string y = (pitchLocationY == PitchLocationY.High) ? high : (pitchLocationY == PitchLocationY.Low) ? low : "";
+        
+       
+        
+      
+        string where = (y =="" && x =="")?"right down the middle":(y == "")?x:(x=="")?y: $"{y} and {x}";
+        Announce($"Pitch {pitch} - The pitch is {where} and ");
         if (pitchCall == PitchCall.Ball)
         {
-            string where = (pitchLocation == PitchLocation.High) ? "high" : (pitchLocation == PitchLocation.Low) ? "low" : (pitchLocation == PitchLocation.Outside) ? "outside" : (pitchLocation == PitchLocation.Inside) ? "inside" : "";
-            if (eye > pitchDeception)
-            {                
-                announcer.Add($"Pitch {pitch} - The pitch is {where}. {Color.PLAYER+ batter.name+Color.RESET} manages to hold off and takes a ball");
+            success /= 2;            
+            if(eye > pitchDeception)
+            {
+                Append($"{Color.PLAYER + batter.name + Color.RESET} manages to hold off and takes a ball");
                 balls++;
             }
             else
-            {
-                announcer.Add($"Pitch {pitch} - The pitch is {where}. {Color.PLAYER + batter.name + Color.RESET} chases it for a strike");
-                strikes++;
+            {                
+                Append($"{Color.PLAYER + batter.name + Color.RESET} chases it ");
+                TheSwing(batter,success,true);
             }
+            
         }
         else
         {
-            if (pitchLocation == PitchLocation.Meatball || strikes == 2)
-            {                
-                if (success < 20 )
-                {
-                    announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} swings but can't connect. That's a strike");
-                    strikes++;
-                }
-                else if (success < 40)
-                {
-                    announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} makes contact but fouls away.");
-                    if (strikes !=2) strikes++;
-                }
-                else hit = true;
-            }
-            else
-            {
-                if (eye > 70)
-                {
-                    announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} doesn't like the pitch, and takes it for a strike");
-                    strikes++;
-                }
-                else
-                {
-                    success = Return.RandomInt(0, batter.contact);
-                    if (success < 20 || success < (pitchDeception/2 + pitchSpeed/2))
-                    {
-                        announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} swings but can't connect. That's a strike");
-                        strikes++;
-                    }
-                    else if (success < 40)
-                    {
-                        announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} makes contact but fouls away.");
-                        if (strikes != 2) strikes++;
-                    }
-                    else hit = true;
-                }
-            }
+            TheSwing(batter,success,false);            
         }
-        if (hit)
-        {            
-            int direction = Return.RandomInt(0, 3);
-            if (direction == 0) hitDirection = HitDirection.Left;
-            else if(direction == 2) hitDirection = HitDirection.Right;
-            else if(direction == 1 && pitchLocation == PitchLocation.Inside) hitDirection = HitDirection.Left;
-            else if (direction == 1 && pitchLocation == PitchLocation.Outside) hitDirection = HitDirection.Right;
-            else hitDirection = HitDirection.Center;
-            if(pitchLocation == PitchLocation.Low)
-            {
-                int type = (Return.RandomInt(0, 7));
-                if (type < 4) hitType = HitType.Grounder;
-                else if (type == 4) hitType = HitType.LineDrive;
-                else if (type == 5) hitType = HitType.Looper;
-                else if (type == 6) hitType = HitType.Pop;
-            }
-            else if (pitchLocation == PitchLocation.High)
-            {
-                int type = (Return.RandomInt(0, 7));
-                if (type < 4) hitType = HitType.Pop;
-                else if (type == 4) hitType = HitType.LineDrive;
-                else if (type == 5) hitType = HitType.Grounder;
-                else if (type == 6) hitType = HitType.Pop;
-            }
-            else
-            {
-                int type = (Return.RandomInt(0, 4));
-                if (type == 0) hitType = HitType.Pop;
-                else if (type == 1) hitType = HitType.LineDrive;
-                else if (type == 2) hitType = HitType.Grounder;
-                else if (type == 3) hitType = HitType.Pop;
-            }
-            int hitClean = (success / batter.contact * 8 / 10);
-            hitPower = Return.RandomInt(batter.power/2, batter.power) * hitClean;
-            if(hitType == HitType.Pop && hitPower > 85 || hitType == HitType.Looper && hitPower > 85)
-            {
-                Return.Batter().homeRunStat[Engine.week]++;
-                announcer.Add($"Pitch {pitch} - {Color.PLAYER + batter.name + Color.RESET} makes great contact and it is OUT OF HERE! HOMERUN!.");
-                if (runnerOn[3] != null) Advance.ScoreFromThird();
-                if (runnerOn[2] != null) Advance.ScoreFromSecond();
-                if (runnerOn[1] != null) Advance.ScoreFromFirst();
-                Advance.ScoreFromHome();
-            }
-            else
-            {
-                string typeHit = (hitType == HitType.Grounder) ? "hard grounder" : (hitType == HitType.LineDrive) ? "line drive" : (hitType == HitType.Pop) ? "pop fly" : "looper";
-                string whereHit = (hitDirection == HitDirection.Center) ? "up the middle" : (hitDirection == HitDirection.Right) ? "down the right side" : "down the left side";
-                announcer.Add(Color.SPEAK + $"Pitch {pitch} - {Color.PLAYER + batter.name + Color.SPEAK} hits a {typeHit} {whereHit}"+ Color.RESET);
-                //FIELDING THE BALL
-                if (hitDirection == HitDirection.Left)
-                {
-                    if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
-                    {
-                        if (Return.RandomInt(0, 2) == 0) Field(Return.InField().third);
-                        else Field(Return.InField().shortStop);
-                    }
-                    else if (hitType == HitType.Looper)
-                    {
-                        if (hitPower > 50) Field(Return.InField().lf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().third);
-                            else Field(Return.InField().shortStop);
-                        }
-                    }
-                    else if (hitType == HitType.Pop)
-                    {
-                        if (hitPower > 50) Field(Return.InField().lf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().third);
-                            else Field(Return.InField().shortStop);
-                        }
-                    }
-                }
-                else if (hitDirection == HitDirection.Center)
-                {
-                    if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
-                    {
-                        if (Return.RandomInt(0, 2) == 0) Field(Return.InField().second);
-                        else Field(Return.InField().shortStop);
-                    }
-                    else if (hitType == HitType.Looper)
-                    {
-                        if (hitPower > 50) Field(Return.InField().cf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().second);
-                            else Field(Return.InField().shortStop);
-                        }
-                    }
-                    else if (hitType == HitType.Pop)
-                    {
-                        if (hitPower > 50) Field(Return.InField().cf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().second);
-                            else Field(Return.InField().shortStop);
-                        }
-                    }
-                }
-                else if (hitDirection == HitDirection.Right)
-                {
-                    if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
-                    {
-                        if (Return.RandomInt(0, 2) == 0) Field(Return.InField().first);
-                        else Field(Return.InField().second);
-                    }
-                    else if (hitType == HitType.Looper)
-                    {
-                        if (hitPower > 50) Field(Return.InField().rf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().first);
-                            else Field(Return.InField().second);
-                        }
-                    }
-                    else if (hitType == HitType.Pop)
-                    {
-                        if (hitPower > 50) Field(Return.InField().rf);
-                        else
-                        {
-                            if (Return.RandomInt(0, 2) == 0) Field(Return.InField().first);
-                            else Field(Return.InField().second);
-                        }
-                    }
-                }
-            }
-        }
-        else if (balls == 4)
-        {
-            Return.Batter().walkStat[Engine.week]++;
-            Advance.Walk();
-            announcer.Add($"That's 4 balls. {Color.PLAYER + batter.name + Color.RESET} will take his base");
-        }
-        else if (strikes == 3)
-        {
-            Return.Batter().strikeOutStat[Engine.week]++;
-            outs++;
-            announcer.Add($"That's 3 strikes. {Color.PLAYER + batter.name + Color.RESET} is out");
-        }
-        else AtBat(batter,pitcher);
     }
 
-    private static void Field(Player fielder)
+    private static void TheSwing(Player batter,int success,bool chase)
+    {
+        if (success < 15)
+        {
+            SwingStrike(batter, chase);
+        }
+        else if (success < 30)
+        {
+            if (chase) SwingStrike(batter,chase);
+            else LayStrike(batter);
+        }
+        else if (success < 45)
+        {
+            int roll = Return.RandomInt(0, 3);
+            if (roll != 1)
+            {
+                Append($"{Color.PLAYER + batter.name + Color.RESET} makes contact but fouls away.");
+                if (strikes != 2) strikes++;
+            }
+            else LayStrike(batter);
+        }
+        else
+        {
+            int hitQuality = 25;
+            TheHit(batter, hitQuality);
+        }
+    
+        
+    }
+
+    private static void LayStrike(Player batter)
+    {
+        Append($"{Color.PLAYER + batter.name + Color.RESET} decides not to swing. That's a strike");
+        strikes++;
+    }
+
+    private static void SwingStrike(Player batter,bool chase)
+    {
+        if (!chase) Append($"{Color.PLAYER + batter.name + Color.RESET} swings but can't connect. That's a strike");
+        else Append("but can't connect. That's a strike");
+        strikes++;
+    }
+
+    private static void TheHit(Player batter, int hitQuality)
+    {
+        int direction = Return.RandomInt(0, 3);
+        if (direction == 0) hitDirection = HitDirection.Left;
+        else if (direction == 2) hitDirection = HitDirection.Right;
+       //else if (direction == 1 && pitchLocationX == PitchLocation.Inside) hitDirection = HitDirection.Left;
+       //else if (direction == 1 && pitchLocationX == PitchLocation.Outside) hitDirection = HitDirection.Right;
+       //else hitDirection = HitDirection.Center;
+       //if (pitchLocationX == PitchLocation.Low)
+       //{
+       //    int type = (Return.RandomInt(0, 7));
+       //    if (type < 4) hitType = HitType.Grounder;
+       //    else if (type == 4) hitType = HitType.LineDrive;
+       //    else if (type == 5) hitType = HitType.Looper;
+       //    else if (type == 6) hitType = HitType.Pop;
+       //}
+       //else if (pitchLocationX == PitchLocation.High)
+       //{
+       //    int type = (Return.RandomInt(0, 7));
+       //    if (type < 4) hitType = HitType.Pop;
+       //    else if (type == 4) hitType = HitType.LineDrive;
+       //    else if (type == 5) hitType = HitType.Grounder;
+       //    else if (type == 6) hitType = HitType.Pop;
+       //}
+        else
+        {
+            int type = (Return.RandomInt(0, 4));
+            if (type == 0) hitType = HitType.Pop;
+            else if (type == 1) hitType = HitType.LineDrive;
+            else if (type == 2) hitType = HitType.Grounder;
+            else if (type == 3) hitType = HitType.Pop;
+        }
+        int hitClean = (success / batter.contact * 8 / 10);
+        hitPower = Return.RandomInt(batter.power / 2, batter.power) * hitClean;
+        if (hitType == HitType.Pop && hitPower > 85 || hitType == HitType.Looper && hitPower > 85)
+        {
+            Return.Batter().homeRunStat[Engine.week]++;
+            Append($"{Color.PLAYER + batter.name + Color.RESET} makes great contact and it is OUT OF HERE! HOMERUN!.");
+            if (runnerOn[3] != null) Advance.ScoreFromThird();
+            if (runnerOn[2] != null) Advance.ScoreFromSecond();
+            if (runnerOn[1] != null) Advance.ScoreFromFirst();
+            Advance.ScoreFromHome();
+        }
+        else
+        {
+            string typeHit = (hitType == HitType.Grounder) ? "hard grounder" : (hitType == HitType.LineDrive) ? "line drive" : (hitType == HitType.Pop) ? "pop fly" : "looper";
+            string whereHit = (hitDirection == HitDirection.Center) ? "up the middle" : (hitDirection == HitDirection.Right) ? "down the right side" : "down the left side";
+            Append($"{Color.PLAYER + batter.name + Color.SPEAK} hits a {typeHit} {whereHit}" + Color.RESET);
+            WhereDoesTheBallGo();
+        }
+        completedAtBat = true;
+    }
+
+    private static void WhereDoesTheBallGo()
+    {        
+        //Where Does It go
+        if (hitDirection == HitDirection.Left)
+        {
+            if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
+            {
+                if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().third);
+                else ThePlay(Return.InField().shortStop);
+            }
+            else if (hitType == HitType.Looper)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().lf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().third);
+                    else ThePlay(Return.InField().shortStop);
+                }
+            }
+            else if (hitType == HitType.Pop)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().lf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().third);
+                    else ThePlay(Return.InField().shortStop);
+                }
+            }
+        }
+        else if (hitDirection == HitDirection.Center)
+        {
+            if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
+            {
+                if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().second);
+                else ThePlay(Return.InField().shortStop);
+            }
+            else if (hitType == HitType.Looper)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().cf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().second);
+                    else ThePlay(Return.InField().shortStop);
+                }
+            }
+            else if (hitType == HitType.Pop)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().cf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().second);
+                    else ThePlay(Return.InField().shortStop);
+                }
+            }
+        }
+        else if (hitDirection == HitDirection.Right)
+        {
+            if (hitType == HitType.LineDrive || hitType == HitType.Grounder)
+            {
+                if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().first);
+                else ThePlay(Return.InField().second);
+            }
+            else if (hitType == HitType.Looper)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().rf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().first);
+                    else ThePlay(Return.InField().second);
+                }
+            }
+            else if (hitType == HitType.Pop)
+            {
+                if (hitPower > 50) ThePlay(Return.InField().rf);
+                else
+                {
+                    if (Return.RandomInt(0, 2) == 0) ThePlay(Return.InField().first);
+                    else ThePlay(Return.InField().second);
+                }
+            }
+        }
+    }    
+
+    private static void ThePlay(Player fielder)
     {
         int field = Return.RandomInt(0, fielder.fielding * fielder.positionSkill / 100);
-        announcer.Add(Color.SPEAK + $"The ball is hit to {Color.POSITION + fielder.name+ Color.SPEAK} who attempts to field it"+ Color.RESET);
+        Announce(Color.SPEAK + $"The ball is hit to {Color.POSITION + fielder.name+ Color.SPEAK} who attempts to field it"+ Color.RESET);
         if (field < 7)
         {
-            announcer.Add(Color.POSITION + fielder.name + Color.RESET + " makes an ERROR!");
+            Announce(Color.POSITION + fielder.name + Color.RESET + " makes an ERROR!");
             Advance.AllRunners2();
             Advance.ToSecond();
         }
@@ -362,23 +466,23 @@ public class Engine
                     int baseNumber = Return.RandomInt(0, 5);
                     if (baseNumber == 0)
                     {
-                        announcer.Add(Color.POSITION + fielder.name + Color.SPEAK + " makes a clean play and keeps it at a single"+ Color.RESET);
+                        Announce(Color.POSITION + fielder.name + Color.SPEAK + " makes a clean play and keeps it at a single"+ Color.RESET);
                         Advance.Single();
                     }
                     else if (baseNumber == 5)
                     {
-                        announcer.Add(Color.SPEAK + "The ball bounces past " + Color.POSITION + fielder.name + Color.SPEAK + " and rolls to the wall. " + Color.PLAYER + Return.Batter().name + Color.SPEAK + " makes it to third for a triple"+ Color.RESET);
+                        Announce(Color.SPEAK + "The ball bounces past " + Color.POSITION + fielder.name + Color.SPEAK + " and rolls to the wall. " + Color.PLAYER + Return.Batter().name + Color.SPEAK + " makes it to third for a triple"+ Color.RESET);
                         Advance.Triple();
                     }
                     else
                     {
-                        announcer.Add(Color.POSITION + fielder.name + Color.SPEAK + " fields the ball and throws it to the cutoff, holding " + Color.PLAYER + Return.Batter().name + Color.SPEAK + " to a double"+Color.RESET);
+                        Announce(Color.POSITION + fielder.name + Color.SPEAK + " fields the ball and throws it to the cutoff, holding " + Color.PLAYER + Return.Batter().name + Color.SPEAK + " to a double"+Color.RESET);
                         Advance.Double();
                     }
                 }
                 else
                 {
-                    announcer.Add(Color.PLAYER + Return.Batter().name + Color.SPEAK + " beats the throw for a single"+ Color.RESET);
+                    Announce(Color.PLAYER + Return.Batter().name + Color.SPEAK + " beats the throw for a single"+ Color.RESET);
                     Advance.Single();
                 }
             }
@@ -386,17 +490,27 @@ public class Engine
             {
                 if(hitType == HitType.Grounder && outs<2 && runnerOn[1] != null)
                 {
-                    announcer.Add(Color.POSITION + fielder.name + Color.SPEAK + " makes a DOUBLE PLAY!"+ Color.RESET);
+                    Announce(Color.POSITION + fielder.name + Color.SPEAK + " makes a DOUBLE PLAY!"+ Color.RESET);
                     runnerOn[1] = null;
                     outs +=2;
                 }
                 else
                 {
-                    announcer.Add(Color.POSITION + fielder.name + Color.SPEAK + " fields the ball cleanly for an out"+ Color.RESET);
+                    Announce(Color.POSITION + fielder.name + Color.SPEAK + " fields the ball cleanly for an out"+ Color.RESET);
                     outs++;
                 }
             }
         }
+    }
+
+    private static void Append(string x)
+    {
+        announcer[announcer.Count - 1] += x;
+    }
+
+    private static void Announce(string x)
+    {
+        announcer.Add(x);
     }
 
     private static void ChangeBatter()

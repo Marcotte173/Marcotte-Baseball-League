@@ -1,8 +1,8 @@
 {
   "runtimeOptions": {
     "additionalProbingPaths": [
-      "C:\\Users\\Marcotte\\.dotnet\\store\\|arch|\\|tfm|",
-      "C:\\Users\\Marcotte\\.nuget\\packages"
+      "C:\\Users\\travi\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\travi\\.nuget\\packages"
     ]
   }
 }

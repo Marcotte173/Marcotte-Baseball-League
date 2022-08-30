@@ -11,3 +11,17 @@ C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.csproj.CoreCo
 C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.dll
 C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.pdb
 C:\Users\Marcotte\source\repos\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.genruntimeconfig.cache
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.exe
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.deps.json
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.runtimeconfig.json
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.runtimeconfig.dev.json
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.dll
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\bin\Debug\netcoreapp3.1\MBL.pdb
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.csproj.AssemblyReference.cache
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.AssemblyInfoInputs.cache
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.AssemblyInfo.cs
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.csproj.CoreCompileInputs.cache
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.dll
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.pdb
+C:\Users\travi\source\repos\Marcotte173\Marcotte-Baseball-League\MBL\MBL\obj\Debug\netcoreapp3.1\MBL.genruntimeconfig.cache
